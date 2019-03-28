@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="index.css">
+    <title>Book Search</title>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Book Search</h1>
+    </div>
+    <div class="conteiner">
+      <form id="form1" action="index.html" method="post">
+        <label for="">本を探す</label>
+        <input id="text" type="text" name="text">
+        <button id="btn" onclick="searchClick()" type="button">検索</button>
+      </form>
+      <div id="content">
+      </div>
+      <div id="btn-page">
+      </div>
+    <div class="footer">
+    </div>
+    </div>
+
+    <script type="text/javascript">
+      let myItem = '';
+      const text = document.querySelector('input');
+      const btn = document.querySelector('button');
+      const elm = document.getElementById('content');
+      function searchClick() {
+        textresult();
+      }
+      function textresult() {
+        if(text.value !== '') {
+          myItem = text.value;
+          text.value = "";
+          searchApi();
+        }
+      }
+      function searchApi(page) {
+        const element = document.getElementById('content');
+        const pageelement = document.getElementById('btn-page')
+        while (element.firstChild) {
+          element.removeChild(element.firstChild);
+        }
+        while (pageelement.firstChild) {
+          pageelement.removeChild(pageelement.firstChild);
+        }
+        if(!page) {
+          page = 0;
+        }
+        let search = myItem;
+        const API_URL = `https://www.googleapis.com/books/v1/volumes?q=${search}&maxResults=10&orderBy=newest&startIndex=${page}`;
+        result(API_URL);
+      }
+
+      function result(API_URL) {
+        fetch(API_URL)
+          .then(function(res) {
+            return res.json();
+          })
+          .then(function(res) {
+            initialize(res);
+            pagename(res);
+          })
+      }
+
+      function initialize(res) {
+        for (var i = 0; i < res.items.length; i++) {
+        const elm = document.getElementById('content');
+        const div = document.createElement('div');
+        const img = document.createElement('img');
+        const a = document.createElement('a');
+        a.href = res.items[i].volumeInfo.previewLink;
+        const imageLinks = res.items[i].volumeInfo.imageLinks;
+          if (!!imageLinks) {
+            img.src= imageLinks.thumbnail;
+          }
+        div.innerHTML = res.items[i].volumeInfo.title;
+        img.innerHTML = res.items[i].volumeInfo.imageLinks;
+        elm.appendChild(a);
+        a.appendChild(div);
+        a.appendChild(img);
+
+        if (i % 2 == 0) {
+          a.style.backgroundColor = '#fdd5ff';
+        } else {
+          a.style.backgroundColor = '#FFD5EC';
+        }
+        a.style.color = '#663300';
+        a.style.textAlign = 'center';
+        a.style.display = 'block';
+        a.style.padding = '40px';
+        div.style.fontSize = '20px';
+        img.style.textAlign = 'center';
+        img.style.padding = '20px';
+        }
+      }
+      function pagename(res) {
+        const n = Math.floor(res.totalItems / 10);
+        for (i = 1; i <= n; i++) {
+          const btn = document.getElementById('btn-page');
+          const button = document.createElement('button');
+          btn.appendChild(button);
+          button.innerHTML = i;
+          button.setAttribute('date-num', i + 1);
+          button.onclick = function(event) {
+            const datanum = event.target.getAttribute('date-num');
+            pagenameClick(datanum);
+          }
+        }
+      }
+
+      function pagenameClick(datanum, page) {
+        page = (Number(datanum) - 1) * 10;
+        searchApi(page);
+      }
+  </script>
+  </body>
+</html>
